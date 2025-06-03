@@ -681,6 +681,8 @@ def health_check():
     )
 
 
+app_handler = app
+
 if __name__ == "__main__":
     print("🚀 TikTok Downloader Server Starting...")
     print("📁 Make sure you have the following structure:")
