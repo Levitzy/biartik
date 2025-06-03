@@ -429,19 +429,6 @@ class TikTokDownloader {
         this.isVideoLoaded = false;
     }
     
-    formatNumber(num) {
-        if (typeof num !== 'number' || isNaN(num)) return '0';
-        
-        if (num >= 1000000000) {
-            return (num / 1000000000).toFixed(1) + 'B';
-        } else if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
-        } else if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
-        }
-        return num.toLocaleString();
-    }
-    
     displayVideoInfo() {
         if (!this.videoData) {
             console.error('No video data to display');
@@ -456,19 +443,13 @@ class TikTokDownloader {
             duration, 
             thumbnail, 
             available_formats,
-            views,
-            likes,
-            shares,
             urls
         } = this.videoData;
         
         const elements = {
             videoTitle: title || 'TikTok Video',
             videoAuthor: author ? `@${author}` : '@Unknown',
-            videoDuration: duration > 0 ? `${Math.round(duration / 1000)}s` : 'Unknown',
-            videoViews: this.formatNumber(views || 0),
-            videoLikes: this.formatNumber(likes || 0),
-            videoShares: this.formatNumber(shares || 0)
+            videoDuration: duration || '0:00'
         };
         
         for (const [elementId, value] of Object.entries(elements)) {

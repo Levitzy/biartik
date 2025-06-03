@@ -118,6 +118,16 @@ class TikTokScraper:
 
         return clean_url
 
+    def format_duration(self, duration_ms: int) -> str:
+        if not duration_ms or duration_ms <= 0:
+            return "0:00"
+
+        total_seconds = duration_ms // 1000
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+
+        return f"{minutes}:{seconds:02d}"
+
     def get_video_data_from_api(self, video_id: str) -> Optional[Dict]:
         try:
             api_url = "https://api22-normal-c-alisg.tiktokv.com/aweme/v1/feed/"
@@ -209,11 +219,8 @@ class TikTokScraper:
             elif video.get("dynamic_cover", {}).get("url_list"):
                 cover_url = video["dynamic_cover"]["url_list"][0]
 
-            views = statistics.get("play_count", 0) or statistics.get("view_count", 0)
-            likes = statistics.get("digg_count", 0) or statistics.get("like_count", 0)
-            shares = statistics.get("share_count", 0) or statistics.get(
-                "forward_count", 0
-            )
+            duration = video.get("duration", 0)
+            formatted_duration = self.format_duration(duration)
 
             return {
                 "video_url_no_watermark": no_watermark_url,
@@ -221,11 +228,8 @@ class TikTokScraper:
                 "video_preview_url": preview_url,
                 "title": aweme.get("desc", "TikTok Video"),
                 "author": author_info.get("nickname", "Unknown"),
-                "duration": video.get("duration", 0),
+                "duration": formatted_duration,
                 "thumbnail": cover_url,
-                "views": int(views) if views else 0,
-                "likes": int(likes) if likes else 0,
-                "shares": int(shares) if shares else 0,
                 "width": video.get("width", 0),
                 "height": video.get("height", 0),
             }
@@ -299,49 +303,6 @@ class TikTokScraper:
                     title_match = re.search(r'"desc":"([^"]+)"', html_content)
                     author_match = re.search(r'"nickname":"([^"]+)"', html_content)
 
-                    views_patterns = [
-                        r'"playCount":(\d+)',
-                        r'"play_count":(\d+)',
-                        r'"view_count":(\d+)',
-                        r'"viewCount":(\d+)',
-                    ]
-
-                    likes_patterns = [
-                        r'"diggCount":(\d+)',
-                        r'"digg_count":(\d+)',
-                        r'"like_count":(\d+)',
-                        r'"likeCount":(\d+)',
-                    ]
-
-                    shares_patterns = [
-                        r'"shareCount":(\d+)',
-                        r'"share_count":(\d+)',
-                        r'"forward_count":(\d+)',
-                        r'"forwardCount":(\d+)',
-                    ]
-
-                    views = 0
-                    likes = 0
-                    shares = 0
-
-                    for pattern in views_patterns:
-                        match = re.search(pattern, html_content)
-                        if match:
-                            views = int(match.group(1))
-                            break
-
-                    for pattern in likes_patterns:
-                        match = re.search(pattern, html_content)
-                        if match:
-                            likes = int(match.group(1))
-                            break
-
-                    for pattern in shares_patterns:
-                        match = re.search(pattern, html_content)
-                        if match:
-                            shares = int(match.group(1))
-                            break
-
                     return {
                         "video_url_no_watermark": self.remove_watermark_from_url(
                             video_url
@@ -352,11 +313,8 @@ class TikTokScraper:
                             title_match.group(1) if title_match else "TikTok Video"
                         ),
                         "author": author_match.group(1) if author_match else "Unknown",
-                        "duration": 0,
+                        "duration": "0:00",
                         "thumbnail": "",
-                        "views": views,
-                        "likes": likes,
-                        "shares": shares,
                         "width": 0,
                         "height": 0,
                     }
@@ -402,7 +360,6 @@ class TikTokScraper:
             if not no_watermark_url and watermark_url:
                 no_watermark_url = self.remove_watermark_from_url(watermark_url)
 
-            stats = video_detail.get("stats", {})
             author_info = video_detail.get("author", {})
             cover_url = (
                 video.get("cover", "")
@@ -410,24 +367,8 @@ class TikTokScraper:
                 or video.get("dynamicCover", "")
             )
 
-            views = (
-                stats.get("playCount", 0)
-                or stats.get("play_count", 0)
-                or stats.get("viewCount", 0)
-                or stats.get("view_count", 0)
-            )
-            likes = (
-                stats.get("diggCount", 0)
-                or stats.get("digg_count", 0)
-                or stats.get("likeCount", 0)
-                or stats.get("like_count", 0)
-            )
-            shares = (
-                stats.get("shareCount", 0)
-                or stats.get("share_count", 0)
-                or stats.get("forwardCount", 0)
-                or stats.get("forward_count", 0)
-            )
+            duration = video.get("duration", 0)
+            formatted_duration = self.format_duration(duration)
 
             return {
                 "video_url_no_watermark": no_watermark_url,
@@ -435,11 +376,8 @@ class TikTokScraper:
                 "video_preview_url": preview_url,
                 "title": video_detail.get("desc", "TikTok Video"),
                 "author": author_info.get("nickname", "Unknown"),
-                "duration": video.get("duration", 0),
+                "duration": formatted_duration,
                 "thumbnail": cover_url,
-                "views": int(views) if views else 0,
-                "likes": int(likes) if likes else 0,
-                "shares": int(shares) if shares else 0,
                 "width": video.get("width", 0),
                 "height": video.get("height", 0),
             }
@@ -522,12 +460,9 @@ def get_video_info():
             "data": {
                 "title": video_data.get("title", "TikTok Video"),
                 "author": video_data.get("author", "Unknown"),
-                "duration": video_data.get("duration", 0),
+                "duration": video_data.get("duration", "0:00"),
                 "thumbnail": video_data.get("thumbnail", ""),
                 "video_id": video_data.get("video_id", ""),
-                "views": video_data.get("views", 0),
-                "likes": video_data.get("likes", 0),
-                "shares": video_data.get("shares", 0),
                 "width": video_data.get("width", 0),
                 "height": video_data.get("height", 0),
                 "urls": {
