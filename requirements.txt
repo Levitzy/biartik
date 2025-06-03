@@ -1,0 +1,9 @@
+Flask
+Flask-CORS
+requests
+Werkzeug
+Jinja2
+MarkupSafe
+itsdangerous
+click
+blinker
