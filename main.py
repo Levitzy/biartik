@@ -6,8 +6,12 @@ import threading
 from datetime import datetime
 import logging
 
-from tiktokscrape import TikTokScraper
-from fbvideo import FacebookVideoDownloader
+try:
+    from tiktokscrape import TikTokScraper
+    from fbvideo import FacebookVideoDownloader
+except ImportError as e:
+    print(f"Import error: {e}")
+    raise
 
 app = Flask(__name__)
 CORS(app)
@@ -39,8 +43,14 @@ def cleanup_temp_file(file_path, delay=300):
     threading.Thread(target=remove_file, daemon=True).start()
 
 
-tiktok_scraper = TikTokScraper()
-facebook_scraper = FacebookVideoDownloader()
+try:
+    tiktok_scraper = TikTokScraper()
+    facebook_scraper = FacebookVideoDownloader()
+    print("✅ Scrapers initialized successfully")
+except Exception as e:
+    print(f"❌ Error initializing scrapers: {e}")
+    tiktok_scraper = None
+    facebook_scraper = None
 
 
 @app.route("/")
@@ -77,8 +87,12 @@ def get_video_info():
         print(f"Analyzing {platform.upper()} URL: {url}")
 
         if platform == "tiktok":
+            if not tiktok_scraper:
+                return jsonify({"error": "TikTok scraper not available"}), 500
             video_data = tiktok_scraper.get_video_data(url)
         elif platform == "facebook":
+            if not facebook_scraper:
+                return jsonify({"error": "Facebook scraper not available"}), 500
             video_data = facebook_scraper.get_video_data(url)
 
         if "error" in video_data:
@@ -180,6 +194,9 @@ def download_video():
 
 def handle_tiktok_download(url, quality):
     """Handle TikTok video download"""
+    if not tiktok_scraper:
+        return jsonify({"error": "TikTok scraper not available"}), 500
+
     no_watermark = quality == "no_watermark"
     video_data = tiktok_scraper.get_video_data(url)
 
@@ -222,6 +239,9 @@ def handle_tiktok_download(url, quality):
 
 def handle_facebook_download(url, quality):
     """Handle Facebook video download"""
+    if not facebook_scraper:
+        return jsonify({"error": "Facebook scraper not available"}), 500
+
     video_data = facebook_scraper.get_video_data(url)
 
     if "error" in video_data:
@@ -273,17 +293,20 @@ def proxy_video():
             "Accept": "video/webm,video/ogg,video/*;q=0.9,*/*;q=0.5",
         }
 
-        response = tiktok_scraper.session.get(
-            video_url, headers=headers, stream=True, timeout=30
-        )
-        response.raise_for_status()
+        if tiktok_scraper:
+            response = tiktok_scraper.session.get(
+                video_url, headers=headers, stream=True, timeout=30
+            )
+            response.raise_for_status()
 
-        return send_file(
-            response.raw,
-            mimetype="video/mp4",
-            as_attachment=False,
-            download_name="preview.mp4",
-        )
+            return send_file(
+                response.raw,
+                mimetype="video/mp4",
+                as_attachment=False,
+                download_name="preview.mp4",
+            )
+        else:
+            return jsonify({"error": "Scraper not available"}), 500
 
     except Exception as e:
         return jsonify({"error": f"Proxy failed: {str(e)}"}), 500
@@ -298,7 +321,10 @@ def health_check():
             "timestamp": datetime.now().isoformat(),
             "version": "3.0.0",
             "supported_platforms": ["tiktok", "facebook"],
-            "modules": {"tiktok_scraper": "active", "facebook_scraper": "active"},
+            "modules": {
+                "tiktok_scraper": "active" if tiktok_scraper else "inactive",
+                "facebook_scraper": "active" if facebook_scraper else "inactive",
+            },
         }
     )
 
@@ -313,6 +339,7 @@ def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 
+# For Vercel deployment
 app_handler = app
 
 if __name__ == "__main__":

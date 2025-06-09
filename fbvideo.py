@@ -392,7 +392,7 @@ class FacebookVideoDownloader:
             match = re.search(pattern, html_content)
             if match:
                 duration_ms = int(match.group(1))
-                if pattern.endswith('_ms"):(\d+)') or "milliseconds" in pattern:
+                if pattern.endswith(r'_ms"):(\d+)') or "milliseconds" in pattern:
                     duration_sec = duration_ms // 1000
                 else:
                     duration_sec = duration_ms
