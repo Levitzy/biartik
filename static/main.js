@@ -1,9 +1,12 @@
 const API_BASE = '/api';
 
-class TikTokDownloader {
+class VideoDownloader {
     constructor() {
         this.initializeElements();
+        this.initializeHandlers();
         this.videoData = null;
+        this.platform = null;
+        this.currentUrl = null;
         this.isVideoLoaded = false;
         this.initializeEventListeners();
         this.initializeUI();
@@ -21,17 +24,46 @@ class TikTokDownloader {
         this.videoThumbnail = document.getElementById('videoThumbnail');
         this.playButtonOverlay = document.getElementById('playButtonOverlay');
         this.videoLoading = document.getElementById('videoLoading');
+        this.downloadOptions = document.getElementById('downloadOptions');
+        this.platformIcon = document.getElementById('platformIcon');
         
         const requiredElements = [
             'form', 'urlInput', 'analyzeBtn', 'errorAlert', 'errorMessage',
             'videoInfo', 'downloadProgress', 'videoPreview', 'videoThumbnail',
-            'playButtonOverlay', 'videoLoading'
+            'playButtonOverlay', 'videoLoading', 'downloadOptions', 'platformIcon'
         ];
         
         for (const element of requiredElements) {
             if (!this[element]) {
                 console.error(`Required element not found: ${element}`);
             }
+        }
+    }
+    
+    initializeHandlers() {
+        this.tiktokHandler = new TikTokHandler(API_BASE);
+        this.facebookHandler = new FacebookHandler(API_BASE);
+        
+        console.log('Platform handlers initialized');
+    }
+    
+    detectPlatform(url) {
+        if (this.tiktokHandler.detectTikTokUrl(url)) {
+            return 'tiktok';
+        } else if (this.facebookHandler.detectFacebookUrl(url)) {
+            return 'facebook';
+        }
+        return 'unknown';
+    }
+    
+    getCurrentHandler() {
+        switch (this.platform) {
+            case 'tiktok':
+                return this.tiktokHandler;
+            case 'facebook':
+                return this.facebookHandler;
+            default:
+                return null;
         }
     }
     
@@ -44,31 +76,16 @@ class TikTokDownloader {
             });
         }
         
-        const downloadNoWatermarkBtn = document.getElementById('downloadNoWatermark');
-        const downloadWatermarkBtn = document.getElementById('downloadWatermark');
-        
-        if (downloadNoWatermarkBtn) {
-            downloadNoWatermarkBtn.addEventListener('click', () => {
-                console.log('Download no watermark clicked');
-                this.downloadVideo(true);
-            });
-        }
-        
-        if (downloadWatermarkBtn) {
-            downloadWatermarkBtn.addEventListener('click', () => {
-                console.log('Download with watermark clicked');
-                this.downloadVideo(false);
-            });
-        }
-        
         if (this.urlInput) {
             this.urlInput.addEventListener('input', () => {
                 this.hideError();
+                this.updatePlatformDetection();
             });
             
             this.urlInput.addEventListener('paste', (e) => {
                 setTimeout(() => {
                     this.validateUrl();
+                    this.updatePlatformDetection();
                 }, 100);
             });
         }
@@ -133,15 +150,46 @@ class TikTokDownloader {
             this.urlInput.focus();
             this.addPlaceholderAnimation();
         }
-        console.log('TikTok Downloader initialized successfully');
+        console.log('Multi-Platform Video Downloader initialized successfully');
+    }
+    
+    updatePlatformDetection() {
+        if (!this.urlInput) return;
+        
+        const url = this.urlInput.value.trim();
+        const detectedPlatform = this.detectPlatform(url);
+        
+        if (url && detectedPlatform !== 'unknown') {
+            const detectionHandler = detectedPlatform === 'tiktok' ? this.tiktokHandler : this.facebookHandler;
+            this.urlInput.style.borderColor = detectionHandler.getStyleBorderColor();
+            
+            const platformHint = document.createElement('div');
+            platformHint.className = 'absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none';
+            platformHint.innerHTML = `<span class="text-xs font-semibold px-2 py-1 rounded-full" style="background-color: ${detectionHandler.getStyleBorderColor()}; color: white;">${detectionHandler.getPlatformName()}</span>`;
+            
+            const existingHint = this.urlInput.parentElement.querySelector('.absolute.right-3');
+            if (existingHint) {
+                existingHint.remove();
+            }
+            
+            this.urlInput.parentElement.appendChild(platformHint);
+        } else {
+            this.urlInput.style.borderColor = '';
+            const existingHint = this.urlInput.parentElement.querySelector('.absolute.right-3');
+            if (existingHint) {
+                existingHint.remove();
+            }
+        }
     }
     
     addPlaceholderAnimation() {
+        const tiktokSuggestions = this.tiktokHandler.getTikTokUrlSuggestions();
+        const facebookSuggestions = this.facebookHandler.getFacebookUrlSuggestions();
+        
         const placeholders = [
-            'https://www.tiktok.com/@username/video/...',
-            'https://vm.tiktok.com/...',
-            'https://m.tiktok.com/v/...',
-            'Paste your TikTok URL here...'
+            ...tiktokSuggestions,
+            ...facebookSuggestions,
+            'Paste your TikTok or Facebook URL here...'
         ];
         
         let currentIndex = 0;
@@ -158,18 +206,37 @@ class TikTokDownloader {
         if (!this.urlInput) return false;
         
         const url = this.urlInput.value.trim();
-        if (url && !url.includes('tiktok.com')) {
-            this.showError('Please enter a valid TikTok URL');
-            return false;
+        if (url) {
+            const platform = this.detectPlatform(url);
+            if (platform === 'unknown') {
+                this.showError('Please enter a valid TikTok or Facebook URL');
+                return false;
+            }
+            
+            const validationHandler = platform === 'tiktok' ? this.tiktokHandler : this.facebookHandler;
+            if (!validationHandler.validateTikTokUrl?.(url) && !validationHandler.validateFacebookUrl?.(url)) {
+                this.showError(`Please enter a valid ${platform} URL format`);
+                return false;
+            }
         }
         return true;
     }
     
-    showError(message) {
+    showError(message, suggestions = []) {
         console.error('Error:', message);
         
         if (this.errorMessage) {
-            this.errorMessage.textContent = message;
+            let errorHtml = message;
+            
+            if (suggestions.length > 0) {
+                errorHtml += '<br><br><strong>Suggestions:</strong><ul class="mt-2 ml-4">';
+                suggestions.forEach(suggestion => {
+                    errorHtml += `<li class="list-disc text-sm">${suggestion}</li>`;
+                });
+                errorHtml += '</ul>';
+            }
+            
+            this.errorMessage.innerHTML = errorHtml;
         }
         
         if (this.errorAlert) {
@@ -191,7 +258,7 @@ class TikTokDownloader {
         
         setTimeout(() => {
             this.hideError();
-        }, 8000);
+        }, 10000);
     }
     
     hideError() {
@@ -293,7 +360,11 @@ class TikTokDownloader {
     async loadVideoPreview() {
         if (this.isVideoLoaded || !this.videoData) return;
         
-        const previewUrl = this.videoData.urls?.preview || this.videoData.urls?.watermark;
+        const currentHandler = this.getCurrentHandler();
+        if (!currentHandler) return;
+        
+        const previewUrl = currentHandler.getPreviewUrl(this.videoData);
+        
         if (!previewUrl) {
             this.showToast('Video preview not available', 'error');
             return;
@@ -357,13 +428,16 @@ class TikTokDownloader {
         console.log('Analyzing video:', url);
         
         if (!url) {
-            this.showError('Please enter a TikTok URL');
+            this.showError('Please enter a TikTok or Facebook URL');
             return;
         }
         
         if (!this.validateUrl()) {
             return;
         }
+        
+        this.currentUrl = url;
+        this.platform = this.detectPlatform(url);
         
         this.hideError();
         this.showLoading();
@@ -395,11 +469,34 @@ class TikTokDownloader {
             }
             
             this.videoData = data.data;
+            this.platform = data.platform;
+            
+            const analysisHandler = this.getCurrentHandler();
+            if (analysisHandler && analysisHandler.logTikTokActivity) {
+                analysisHandler.logTikTokActivity('analysis_success', { url, success: true });
+            } else if (analysisHandler && analysisHandler.logFacebookActivity) {
+                analysisHandler.logFacebookActivity('analysis_success', { url, success: true });
+            }
+            
             this.displayVideoInfo();
             
         } catch (error) {
             console.error('Analysis error:', error);
-            this.showError(error.message || 'Failed to analyze video. Please check the URL and try again.');
+            
+            const errorHandler = this.getCurrentHandler();
+            let suggestions = [];
+            
+            if (errorHandler && errorHandler.getFacebookErrorSuggestions && this.platform === 'facebook') {
+                suggestions = errorHandler.getFacebookErrorSuggestions(error.message);
+            }
+            
+            if (errorHandler && errorHandler.logTikTokActivity) {
+                errorHandler.logTikTokActivity('analysis_error', { url, error: error.message, success: false });
+            } else if (errorHandler && errorHandler.logFacebookActivity) {
+                errorHandler.logFacebookActivity('analysis_error', { url, error: error.message, success: false });
+            }
+            
+            this.showError(error.message || 'Failed to analyze video. Please check the URL and try again.', suggestions);
         } finally {
             this.hideLoading();
         }
@@ -441,13 +538,11 @@ class TikTokDownloader {
             title, 
             author, 
             duration, 
-            thumbnail, 
-            available_formats,
-            urls
+            thumbnail
         } = this.videoData;
         
         const elements = {
-            videoTitle: title || 'TikTok Video',
+            videoTitle: title || `${this.platform === 'tiktok' ? 'TikTok' : 'Facebook'} Video`,
             videoAuthor: author ? `@${author}` : '@Unknown',
             videoDuration: duration || '0:00'
         };
@@ -461,36 +556,15 @@ class TikTokDownloader {
             }
         }
         
-        this.setupVideoPreview(thumbnail, urls?.preview);
-        
-        const noWatermarkBtn = document.getElementById('downloadNoWatermark');
-        const watermarkBtn = document.getElementById('downloadWatermark');
-        
-        if (noWatermarkBtn) {
-            noWatermarkBtn.disabled = !available_formats?.no_watermark;
+        const displayHandler = this.getCurrentHandler();
+        if (this.platformIcon && displayHandler) {
+            this.platformIcon.textContent = displayHandler.getPlatformIcon();
         }
         
-        if (watermarkBtn) {
-            watermarkBtn.disabled = !available_formats?.watermark;
-        }
-        
-        const formatStatus = document.getElementById('formatStatus');
-        if (formatStatus) {
-            formatStatus.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <div class="w-3 h-3 rounded-full ${available_formats?.no_watermark ? 'bg-green-500' : 'bg-gray-300'}"></div>
-                    <span class="${available_formats?.no_watermark ? 'text-gray-900 font-semibold' : 'text-gray-500'}">
-                        No Watermark Version ${available_formats?.no_watermark ? '✅ Available' : '❌ Not Available'}
-                    </span>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <div class="w-3 h-3 rounded-full ${available_formats?.watermark ? 'bg-green-500' : 'bg-gray-300'}"></div>
-                    <span class="${available_formats?.watermark ? 'text-gray-900 font-semibold' : 'text-gray-500'}">
-                        Watermark Version ${available_formats?.watermark ? '✅ Available' : '❌ Not Available'}
-                    </span>
-                </div>
-            `;
-        }
+        this.setupVideoPreview(thumbnail);
+        this.setupDownloadOptions();
+        this.updateFormatStatus();
+        this.enhancePlatformSpecificDisplay();
         
         if (this.videoInfo) {
             this.videoInfo.classList.remove('hidden');
@@ -503,7 +577,73 @@ class TikTokDownloader {
         console.log('Video info displayed successfully');
     }
     
-    setupVideoPreview(thumbnail, previewUrl) {
+    setupDownloadOptions() {
+        if (!this.downloadOptions) return;
+        
+        this.downloadOptions.innerHTML = '';
+        
+        const downloadHandler = this.getCurrentHandler();
+        if (!downloadHandler) return;
+        
+        let buttons = [];
+        
+        if (this.platform === 'tiktok') {
+            buttons = downloadHandler.createTikTokDownloadButtons(this.videoData, (quality) => {
+                this.downloadVideo(quality);
+            });
+        } else if (this.platform === 'facebook') {
+            buttons = downloadHandler.createFacebookDownloadButtons(this.videoData, (quality) => {
+                this.downloadVideo(quality);
+            });
+        }
+        
+        buttons.forEach(button => {
+            this.downloadOptions.appendChild(button);
+        });
+    }
+    
+    updateFormatStatus() {
+        const formatStatus = document.getElementById('formatStatus');
+        if (!formatStatus) return;
+        
+        formatStatus.innerHTML = '';
+        
+        const formatHandler = this.getCurrentHandler();
+        if (!formatHandler) return;
+        
+        let formats = [];
+        
+        if (this.platform === 'tiktok') {
+            formats = formatHandler.getTikTokFormatStatus(this.videoData);
+        } else if (this.platform === 'facebook') {
+            formats = formatHandler.getFacebookFormatStatus(this.videoData);
+        }
+        
+        formats.forEach(format => {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = 'flex items-center space-x-3';
+            statusDiv.innerHTML = `
+                <div class="w-3 h-3 rounded-full ${format.available ? 'bg-green-500' : 'bg-gray-300'}"></div>
+                <span class="${format.available ? 'text-gray-900 font-semibold' : 'text-gray-500'}">
+                    ${format.label} ${format.status}
+                </span>
+            `;
+            formatStatus.appendChild(statusDiv);
+        });
+    }
+    
+    enhancePlatformSpecificDisplay() {
+        const enhanceHandler = this.getCurrentHandler();
+        if (!enhanceHandler || !this.currentUrl) return;
+        
+        if (enhanceHandler.enhanceTikTokDisplay && this.platform === 'tiktok') {
+            enhanceHandler.enhanceTikTokDisplay(this.videoData, this.videoInfo);
+        } else if (enhanceHandler.enhanceFacebookDisplay && this.platform === 'facebook') {
+            enhanceHandler.enhanceFacebookDisplay(this.videoData, this.videoInfo, this.currentUrl);
+        }
+    }
+    
+    setupVideoPreview(thumbnail) {
         if (this.videoThumbnail && thumbnail) {
             this.videoThumbnail.src = thumbnail;
             this.videoThumbnail.style.display = 'block';
@@ -522,43 +662,45 @@ class TikTokDownloader {
             this.videoThumbnail.style.display = 'none';
         }
         
-        if (this.videoPreview && previewUrl) {
-            const source = this.videoPreview.querySelector('source');
-            if (source) {
-                source.src = previewUrl;
-            }
-        }
-        
         this.resetVideoPreview();
     }
     
-    async downloadVideo(noWatermark) {
+    async downloadVideo(quality) {
         if (!this.videoData) {
             this.showError('Please analyze a video first');
             return;
         }
         
-        const formatType = noWatermark ? 'no_watermark' : 'watermark';
-        if (!this.videoData.available_formats?.[formatType]) {
-            this.showError(`${noWatermark ? 'No watermark' : 'Watermark'} version is not available for this video`);
+        const available = this.videoData.available_formats?.[quality];
+        if (!available) {
+            this.showError(`${quality.replace('_', ' ').toUpperCase()} quality is not available for this video`);
             return;
         }
         
-        console.log('Starting download:', noWatermark ? 'no watermark' : 'with watermark');
+        console.log('Starting download:', quality);
         
         this.showDownloadProgress();
         
         try {
-            const response = await fetch(`${API_BASE}/download`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    url: this.urlInput.value.trim(),
-                    no_watermark: noWatermark
-                })
-            });
+            const downloadHandler = this.getCurrentHandler();
+            let response;
+            
+            if (this.platform === 'tiktok' && downloadHandler.downloadTikTokVideo) {
+                response = await downloadHandler.downloadTikTokVideo(this.currentUrl, quality);
+            } else if (this.platform === 'facebook' && downloadHandler.downloadFacebookVideo) {
+                response = await downloadHandler.downloadFacebookVideo(this.currentUrl, quality);
+            } else {
+                response = await fetch(`${API_BASE}/download`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: this.currentUrl,
+                        quality: quality
+                    })
+                });
+            }
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -576,7 +718,9 @@ class TikTokDownloader {
             a.style.display = 'none';
             a.href = downloadUrl;
             
-            const filename = `tiktok_${this.videoData.video_id || 'video'}_${noWatermark ? 'no_watermark' : 'watermark'}.mp4`;
+            const platform = this.platform;
+            const videoId = this.videoData.video_id || 'video';
+            const filename = `${platform}_${videoId}_${quality}.mp4`;
             a.download = filename;
             
             document.body.appendChild(a);
@@ -585,11 +729,26 @@ class TikTokDownloader {
             window.URL.revokeObjectURL(downloadUrl);
             document.body.removeChild(a);
             
+            const successHandler = this.getCurrentHandler();
+            if (successHandler && successHandler.logTikTokActivity) {
+                successHandler.logTikTokActivity('download_success', { url: this.currentUrl, quality, success: true });
+            } else if (successHandler && successHandler.logFacebookActivity) {
+                successHandler.logFacebookActivity('download_success', { url: this.currentUrl, quality, success: true });
+            }
+            
             this.showToast(`Download started: ${filename}`, 'success');
             console.log('Download completed:', filename);
             
         } catch (error) {
             console.error('Download error:', error);
+            
+            const errorDownloadHandler = this.getCurrentHandler();
+            if (errorDownloadHandler && errorDownloadHandler.logTikTokActivity) {
+                errorDownloadHandler.logTikTokActivity('download_error', { url: this.currentUrl, quality, error: error.message, success: false });
+            } else if (errorDownloadHandler && errorDownloadHandler.logFacebookActivity) {
+                errorDownloadHandler.logFacebookActivity('download_error', { url: this.currentUrl, quality, error: error.message, success: false });
+            }
+            
             this.showError(error.message || 'Download failed. Please try again.');
         } finally {
             this.hideDownloadProgress();
@@ -605,11 +764,10 @@ class TikTokDownloader {
             });
         }
         
-        const noWatermarkBtn = document.getElementById('downloadNoWatermark');
-        const watermarkBtn = document.getElementById('downloadWatermark');
-        
-        if (noWatermarkBtn) noWatermarkBtn.disabled = true;
-        if (watermarkBtn) watermarkBtn.disabled = true;
+        const buttons = this.downloadOptions?.querySelectorAll('button');
+        if (buttons) {
+            buttons.forEach(btn => btn.disabled = true);
+        }
     }
     
     hideDownloadProgress() {
@@ -618,15 +776,21 @@ class TikTokDownloader {
         }
         
         if (this.videoData?.available_formats) {
-            const { available_formats } = this.videoData;
-            const noWatermarkBtn = document.getElementById('downloadNoWatermark');
-            const watermarkBtn = document.getElementById('downloadWatermark');
-            
-            if (noWatermarkBtn) {
-                noWatermarkBtn.disabled = !available_formats.no_watermark;
-            }
-            if (watermarkBtn) {
-                watermarkBtn.disabled = !available_formats.watermark;
+            const buttons = this.downloadOptions?.querySelectorAll('button');
+            if (buttons) {
+                buttons.forEach((btn, index) => {
+                    let qualities = [];
+                    
+                    if (this.platform === 'tiktok') {
+                        qualities = ['no_watermark', 'watermark'];
+                    } else if (this.platform === 'facebook') {
+                        qualities = ['hd', 'sd', 'auto'];
+                    }
+                    
+                    if (qualities[index]) {
+                        btn.disabled = !this.videoData.available_formats[qualities[index]];
+                    }
+                });
             }
         }
     }
@@ -681,7 +845,13 @@ class TikTokDownloader {
         
         if (this.urlInput) {
             this.urlInput.value = '';
+            this.urlInput.style.borderColor = '';
             this.urlInput.focus();
+        }
+        
+        const existingHint = this.urlInput?.parentElement.querySelector('.absolute.right-3');
+        if (existingHint) {
+            existingHint.remove();
         }
         
         this.hideError();
@@ -695,15 +865,17 @@ class TikTokDownloader {
         }
         
         this.videoData = null;
+        this.platform = null;
+        this.currentUrl = null;
         this.resetVideoPreview();
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing TikTok Downloader...');
+    console.log('DOM loaded, initializing Multi-Platform Video Downloader...');
     
     try {
-        const app = new TikTokDownloader();
+        const app = new VideoDownloader();
         
         window.resetApp = () => {
             app.resetForm();
@@ -716,10 +888,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        console.log('✅ TikTok Downloader initialized successfully!');
+        console.log('✅ Multi-Platform Video Downloader initialized successfully!');
+        console.log('📱 Supported platforms: TikTok, Facebook');
+        console.log('🔧 Modular architecture with separated handlers');
         
     } catch (error) {
-        console.error('❌ Failed to initialize TikTok Downloader:', error);
+        console.error('❌ Failed to initialize Video Downloader:', error);
     }
 });
 
@@ -755,5 +929,5 @@ function copyToClipboard(text) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { TikTokDownloader, formatFileSize, copyToClipboard };
+    module.exports = { VideoDownloader, formatFileSize, copyToClipboard };
 }
