@@ -1,317 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TikTok & Facebook Video Downloader</title>
     <meta name="description" content="Download TikTok and Facebook videos with or without watermark. Fast, free, and high quality.">
     <meta name="robots" content="index, follow">
-    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a'
-                        },
-                        success: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            200: '#a7f3d0',
-                            300: '#6ee7b7',
-                            400: '#34d399',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b'
-                        },
-                        warning: {
-                            50: '#fffbeb',
-                            100: '#fef3c7',
-                            200: '#fde68a',
-                            300: '#fcd34d',
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            800: '#92400e',
-                            900: '#78350f'
-                        },
-                        facebook: {
-                            500: '#1877f2',
-                            600: '#166fe5'
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.6s ease-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
-                        'bounce-soft': 'bounce 2s infinite',
-                        'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                    },
-                    screens: {
-                        'xs': '475px',
-                        '3xl': '1600px'
-                    }
-                }
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                200: "#bfdbfe",
+                300: "#93c5fd",
+                400: "#60a5fa",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                800: "#1e40af",
+                900: "#1e3a8a"
+              },
+              success: {
+                50: "#ecfdf5",
+                100: "#d1fae5",
+                200: "#a7f3d0",
+                300: "#6ee7b7",
+                400: "#34d399",
+                500: "#10b981",
+                600: "#059669",
+                700: "#047857",
+                800: "#065f46",
+                900: "#064e3b"
+              },
+              warning: {
+                50: "#fffbeb",
+                100: "#fef3c7",
+                200: "#fde68a",
+                300: "#fcd34d",
+                400: "#fbbf24",
+                500: "#f59e0b",
+                600: "#d97706",
+                700: "#b45309",
+                800: "#92400e",
+                900: "#78350f"
+              },
+              facebook: {
+                500: "#1877f2",
+                600: "#166fe5"
+              }
+            },
+            animation: {
+              "fade-in": "fadeIn 0.6s ease-out",
+              "slide-up": "slideUp 0.5s ease-out",
+              "bounce-soft": "bounce 2s infinite",
+              "pulse-soft": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+            },
+            screens: {
+              xs: "475px",
+              "3xl": "1600px"
             }
+          }
         }
+      };
     </script>
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
-<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
-    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M19.589 6.686a4.793 4.793 0 01-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 01-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 112.183-4.51v-3.5a6.329 6.329 0 00-2.183.4v3.5a2.895 2.895 0 11-2.183 4.51l.002.001a2.896 2.896 0 015.201-1.743V2h3.445v.441a4.793 4.793 0 003.77 4.245z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold text-gray-900">Video Downloader</h1>
-                        <p class="text-xs text-gray-500 hidden sm:block">TikTok & Facebook</p>
-                    </div>
-                </div>
-                <div class="hidden md:flex items-center space-x-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="flex items-center space-x-1">
-                            <div class="w-6 h-6 bg-black rounded flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19.589 6.686a4.793 4.793 0 01-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 01-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 112.183-4.51v-3.5a6.329 6.329 0 00-2.183.4v3.5a2.895 2.895 0 11-2.183 4.51l.002.001a2.896 2.896 0 015.201-1.743V2h3.445v.441a4.793 4.793 0 003.77 4.245z"/>
-                                </svg>
-                            </div>
-                            <div class="w-6 h-6 bg-facebook-500 rounded flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2 text-sm">
-                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-                            <span class="text-gray-600 font-medium">Ready</span>
-                        </div>
-                    </div>
-                </div>
+  </head>
+  <body class="min-h-screen antialiased text-gray-900 selection:bg-primary-500/20 selection:text-primary-900 bg-slate-50 [background-image:radial-gradient(40rem_40rem_at_-20%_-10%,theme(colors.indigo.100/.6),transparent),radial-gradient(32rem_32rem_at_120%_-20%,theme(colors.blue.100/.6),transparent),radial-gradient(40rem_40rem_at_50%_120%,theme(colors.cyan.100/.5),transparent)]">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:shadow-lg">Skip to content</a>
+    <header class="sticky top-0 z-40 border-b border-black/5 bg-white/80 backdrop-blur-md">
+      <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-lg ring-1 ring-inset ring-black/10">
+              <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19.589 6.686a4.793 4.793 0 01-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 01-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 112.183-4.51v-3.5a6.329 6.329 0 00-2.183.4v3.5a2.895 2.895 0 11-2.183 4.51l.002.001a2.896 2.896 0 015.201-1.743V2h3.445v.441a4.793 4.793 0 003.77 4.245z"></path>
+              </svg>
             </div>
+            <div>
+              <p class="text-base font-bold leading-tight">Video Downloader</p>
+              <p class="text-xs text-gray-500">TikTok & Facebook</p>
+            </div>
+          </div>
+          <div class="hidden md:flex items-center gap-4">
+            <div class="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm shadow-sm ring-1 ring-black/5">
+              <span class="inline-flex h-2 w-2 animate-pulse-soft rounded-full bg-success-500"></span>
+              <span class="font-medium text-gray-700">Ready</span>
+            </div>
+          </div>
         </div>
+      </div>
     </header>
-
-    <main class="flex-grow">
-        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- URL Input Section -->
-            <div class="bg-white/70 backdrop-blur-md rounded-2xl lg:rounded-3xl shadow-xl border border-white/20 p-6 sm:p-8 mb-8 animate-fade-in">
-                <form id="downloadForm" class="space-y-6">
-                    <div>
-                        <label for="urlInput" class="block text-lg font-semibold text-gray-900 mb-4">
-                            🔗 Enter TikTok or Facebook URL
-                        </label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                                <svg class="h-5 sm:h-6 w-5 sm:w-6 text-gray-400 group-focus-within:text-primary-500 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                                </svg>
-                            </div>
-                            <input 
-                                type="url" 
-                                id="urlInput" 
-                                placeholder="https://www.tiktok.com/@username/video/... or https://www.facebook.com/..." 
-                                class="w-full pl-12 sm:pl-14 pr-16 py-4 sm:py-5 text-base sm:text-lg border-2 border-gray-200 rounded-xl lg:rounded-2xl focus:ring-4 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-200 bg-white/80 backdrop-blur-sm text-gray-900 placeholder-gray-500"
-                                required
-                                aria-describedby="url-help"
-                            >
-                            <div class="absolute inset-0 bg-gradient-to-r from-primary-500/5 to-transparent rounded-xl lg:rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                        </div>
-                        <p id="url-help" class="mt-2 text-sm text-gray-500">
-                            Supports TikTok videos, Facebook videos, and Facebook Reels (all URL formats)
-                        </p>
-                    </div>
-                    
-                    <button 
-                        type="submit" 
-                        id="analyzeBtn"
-                        class="w-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 active:from-primary-700 active:to-primary-800 text-white font-bold py-4 sm:py-5 px-8 rounded-xl lg:rounded-2xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none"
-                        aria-describedby="analyze-description"
-                    >
-                        <span class="analyze-text flex items-center justify-center space-x-3">
-                            <svg class="w-5 sm:w-6 h-5 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            <span class="text-base sm:text-lg">Analyze Video</span>
-                        </span>
-                        <span class="loading-text hidden flex items-center justify-center space-x-3">
-                            <svg class="animate-spin h-5 sm:h-6 w-5 sm:w-6" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            <span class="loading-dots text-base sm:text-lg">Analyzing</span>
-                        </span>
-                    </button>
-                    <p id="analyze-description" class="text-sm text-gray-500 text-center">
-                        We'll extract video information and download options for both platforms
-                    </p>
-                </form>
-            </div>
-
-            <!-- Error Alert -->
-            <div id="errorAlert" class="hidden bg-red-50 border-2 border-red-200 rounded-xl lg:rounded-2xl p-6 mb-8 animate-slide-up" role="alert">
-                <div class="flex items-start space-x-4">
-                    <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                            <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="flex-grow">
-                        <h3 class="text-lg font-bold text-red-800">Oops! Something went wrong</h3>
-                        <div id="errorMessage" class="text-red-700 mt-1"></div>
-                    </div>
+    <main id="main" class="flex-1">
+      <section class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div class="mx-auto max-w-3xl text-center">
+          <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Download videos in seconds</h1>
+          <p class="mt-3 text-base text-gray-600 sm:text-lg">Paste a TikTok or Facebook link. We will analyze the video and present clean download options.</p>
+          <div class="mt-6 inline-flex flex-wrap items-center justify-center gap-2">
+            <span class="rounded-full bg-black text-white px-3 py-1 text-xs font-medium">TikTok</span>
+            <span class="rounded-full bg-facebook-500 text-white px-3 py-1 text-xs font-medium">Facebook</span>
+            <span class="rounded-full bg-primary-100 text-primary-700 px-3 py-1 text-xs font-medium ring-1 ring-primary-200">No watermark options</span>
+          </div>
+        </div>
+        <div class="mt-8 rounded-3xl border border-white/20 bg-white/70 p-6 shadow-xl backdrop-blur-md sm:p-8">
+          <form id="downloadForm" class="space-y-6" autocomplete="off">
+            <div>
+              <label for="urlInput" class="mb-3 block text-lg font-semibold">Enter TikTok or Facebook URL</label>
+              <div class="group relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-4">
+                  <svg class="h-5 w-5 text-gray-400 transition-colors duration-200 group-focus-within:text-primary-500 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                  </svg>
                 </div>
+                <input id="urlInput" type="url" placeholder="https://www.tiktok.com/@username/video/... or https://www.facebook.com/..." class="w-full rounded-2xl border-2 border-gray-200 bg-white/80 pl-12 pr-16 py-4 text-base text-gray-900 placeholder:text-gray-500 shadow-sm outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 sm:pl-14 sm:py-5" required aria-describedby="url-help">
+                <div class="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-primary-500/5 to-transparent opacity-0 transition-opacity duration-200 group-focus-within:opacity-100"></div>
+              </div>
+              <p id="url-help" class="mt-2 text-sm text-gray-500">Supports TikTok videos, Facebook videos, and Facebook Reels (all URL formats)</p>
             </div>
-
-            <!-- Video Information Display -->
-            <div id="videoInfo" class="hidden bg-white/70 backdrop-blur-md rounded-2xl lg:rounded-3xl shadow-xl border border-white/20 overflow-hidden animate-slide-up">
-                <div class="p-6 sm:p-8">
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <!-- Video Preview Column -->
-                        <div class="lg:col-span-1">
-                            <div class="relative rounded-xl overflow-hidden bg-gray-100 aspect-[9/16] max-w-sm mx-auto shadow-lg group">
-                                <video 
-                                    id="videoPreview" 
-                                    class="w-full h-full object-cover hidden"
-                                    controls
-                                    muted
-                                    playsinline
-                                    preload="metadata"
-                                    poster=""
-                                    aria-label="Video preview"
-                                >
-                                    <source src="" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                                
-                                <img 
-                                    id="videoThumbnail" 
-                                    src="" 
-                                    alt="Video thumbnail" 
-                                    class="w-full h-full object-cover"
-                                >
-                                
-                                <div id="playButtonOverlay" class="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors duration-200 cursor-pointer" tabindex="0" role="button" aria-label="Load video preview">
-                                    <div class="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm hover:bg-white transition-colors duration-200">
-                                        <svg class="w-7 h-7 text-gray-700 ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M8 5v14l11-7z"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                                
-                                <div id="videoLoading" class="hidden absolute inset-0 bg-black/50 flex items-center justify-center" aria-live="polite">
-                                    <div class="text-white text-center">
-                                        <svg class="animate-spin h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        <p class="text-sm">Loading Preview...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Video Details Column -->
-                        <div class="lg:col-span-2 space-y-6">
-                            <div>
-                                <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 flex items-center space-x-3">
-                                    <span id="platformIcon">📹</span>
-                                    <span>Video Information</span>
-                                </h3>
-                                <div class="space-y-4">
-                                    <div class="flex flex-col sm:flex-row sm:items-start gap-3">
-                                        <span class="text-gray-500 font-semibold min-w-20 text-sm uppercase tracking-wide">Title:</span>
-                                        <span id="videoTitle" class="text-gray-900 font-medium text-base sm:text-lg leading-relaxed break-words"></span>
-                                    </div>
-                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                                        <span class="text-gray-500 font-semibold min-w-20 text-sm uppercase tracking-wide">Author:</span>
-                                        <span id="videoAuthor" class="text-primary-600 font-bold text-base sm:text-lg"></span>
-                                    </div>
-                                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-                                        <span class="text-gray-500 font-semibold min-w-20 text-sm uppercase tracking-wide">Duration:</span>
-                                        <span id="videoDuration" class="text-gray-900 font-medium text-base sm:text-lg"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Download Options -->
-                            <div class="space-y-6">
-                                <h4 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center space-x-3">
-                                    <span>⬇️</span>
-                                    <span>Download Options</span>
-                                </h4>
-                                
-                                <div id="downloadOptions" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <!-- Dynamic download buttons will be inserted here -->
-                                </div>
-                                
-                                <!-- Format Status -->
-                                <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 sm:p-6 border border-gray-200">
-                                    <div class="flex items-center space-x-3 mb-4">
-                                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                            <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                        <span class="font-bold text-gray-800 text-base sm:text-lg">Format Availability</span>
-                                    </div>
-                                    <div id="formatStatus" class="space-y-3 text-sm sm:text-base">
-                                        <!-- Dynamic format status will be inserted here -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+            <button id="analyzeBtn" type="submit" class="w-full transform rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 px-8 py-4 font-bold text-white shadow-lg ring-1 ring-inset ring-black/5 transition hover:-translate-y-0.5 hover:from-primary-600 hover:to-primary-700 hover:shadow-xl active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500/30 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none" aria-describedby="analyze-description">
+              <span class="analyze-text flex items-center justify-center gap-3">
+                <svg class="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <span class="text-base sm:text-lg">Analyze Video</span>
+              </span>
+              <span class="loading-text hidden flex items-center justify-center gap-3">
+                <svg class="h-5 w-5 animate-spin sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="loading-dots text-base sm:text-lg">Analyzing</span>
+              </span>
+            </button>
+            <p id="analyze-description" class="text-center text-sm text-gray-600">We will extract video information and download options for both platforms</p>
+          </form>
+        </div>
+        <div id="errorAlert" role="alert" class="mt-8 hidden rounded-2xl border-2 border-red-200 bg-red-50 p-6 animate-slide-up">
+          <div class="flex items-start gap-4">
+            <div class="grid h-10 w-10 place-items-center rounded-full bg-red-100">
+              <svg class="h-6 w-6 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-red-800">Oops! Something went wrong</h3>
+              <div id="errorMessage" class="mt-1 text-red-700"></div>
+            </div>
+          </div>
+        </div>
+        <div id="videoInfo" class="mt-8 hidden overflow-hidden rounded-3xl border border-white/20 bg-white/70 shadow-xl backdrop-blur-md animate-slide-up">
+          <div class="p-6 sm:p-8">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              <div class="lg:col-span-1">
+                <div class="group relative mx-auto aspect-[9/16] max-w-sm overflow-hidden rounded-xl bg-gray-100 shadow-lg">
+                  <video id="videoPreview" class="hidden h-full w-full object-cover" controls muted playsinline preload="metadata" poster="" aria-label="Video preview">
+                    <source src="" type="video/mp4">
+                    Your browser does not support the video tag.
+                  </video>
+                  <img id="videoThumbnail" src="" alt="Video thumbnail" class="h-full w-full object-cover">
+                  <div id="playButtonOverlay" class="absolute inset-0 grid place-items-center bg-black/30 transition-colors duration-200 group-hover:bg-black/40" tabindex="0" role="button" aria-label="Load video preview">
+                    <div class="grid h-16 w-16 place-items-center rounded-full bg-white/90 shadow-lg backdrop-blur-sm transition hover:bg-white">
+                      <svg class="ml-0.5 h-7 w-7 text-gray-700" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M8 5v14l11-7z"></path>
+                      </svg>
                     </div>
+                  </div>
+                  <div id="videoLoading" class="absolute inset-0 hidden grid place-items-center bg-black/50" aria-live="polite">
+                    <div class="text-center text-white">
+                      <svg class="mx-auto mb-2 h-8 w-8 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <p class="text-sm">Loading Preview...</p>
+                    </div>
+                  </div>
                 </div>
-            </div>
-
-            <!-- Download Progress -->
-            <div id="downloadProgress" class="hidden bg-white/80 backdrop-blur-md rounded-xl shadow-xl border border-white/20 p-6 sm:p-8 mt-8 animate-slide-up max-w-2xl mx-auto" role="status" aria-live="polite">
-                <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-                    <div class="flex-shrink-0">
-                        <svg class="animate-spin h-10 sm:h-12 w-10 sm:w-12 text-primary-500" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </div>
+              <div class="lg:col-span-2 space-y-6">
+                <div>
+                  <h3 class="mb-4 flex items-center gap-3 text-xl font-bold sm:text-2xl">
+                    <span id="platformIcon">📹</span>
+                    <span>Video Information</span>
+                  </h3>
+                  <div class="space-y-4">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+                      <span class="min-w-20 text-sm font-semibold uppercase tracking-wide text-gray-500">Title:</span>
+                      <span id="videoTitle" class="break-words text-base font-medium leading-relaxed text-gray-900 sm:text-lg"></span>
+                    </div>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <span class="min-w-20 text-sm font-semibold uppercase tracking-wide text-gray-500">Author:</span>
+                      <span id="videoAuthor" class="text-base font-bold text-primary-600 sm:text-lg"></span>
+                    </div>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <span class="min-w-20 text-sm font-semibold uppercase tracking-wide text-gray-500">Duration:</span>
+                      <span id="videoDuration" class="text-base font-medium text-gray-900 sm:text-lg"></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-6">
+                  <h4 class="flex items-center gap-3 text-lg font-bold sm:text-xl">
+                    <span>⬇️</span>
+                    <span>Download Options</span>
+                  </h4>
+                  <div id="downloadOptions" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+                  <div class="rounded-xl border border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 p-4 sm:p-6">
+                    <div class="mb-4 flex items-center gap-3">
+                      <div class="grid h-8 w-8 place-items-center rounded-full bg-blue-100">
+                        <svg class="h-5 w-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
+                      </div>
+                      <span class="text-base font-bold text-gray-800 sm:text-lg">Format Availability</span>
                     </div>
-                    <div class="text-center sm:text-left">
-                        <h3 class="text-lg sm:text-xl font-bold text-gray-900">Preparing Your Download...</h3>
-                        <p class="text-gray-600 mt-1">Please wait while we process your video</p>
-                    </div>
+                    <div id="formatStatus" class="space-y-3 text-sm sm:text-base"></div>
+                  </div>
                 </div>
+              </div>
             </div>
+          </div>
         </div>
+        <div id="downloadProgress" role="status" aria-live="polite" class="mx-auto mt-8 hidden max-w-2xl animate-slide-up rounded-xl border border-white/20 bg-white/80 p-6 shadow-xl backdrop-blur-md sm:p-8">
+          <div class="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
+            <div class="flex-shrink-0">
+              <svg class="h-10 w-10 animate-spin text-primary-500 sm:h-12 sm:w-12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <div class="text-center sm:text-left">
+              <h3 class="text-lg font-bold text-gray-900 sm:text-xl">Preparing Your Download...</h3>
+              <p class="mt-1 text-gray-600">Please wait while we process your video</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
-    <footer class="mt-auto bg-white/80 backdrop-blur-md border-t border-gray-200">
-        <div class="max-w-screen-xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between text-sm text-gray-600">
-            <p>&copy; 2024 Video Downloader. All rights reserved.</p>
-            <p class="mt-2 sm:mt-0">Built with Tailwind CSS v4</p>
-        </div>
+    <footer class="mt-auto border-t border-black/5 bg-white/80 backdrop-blur-md">
+      <div class="mx-auto flex max-w-screen-xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-gray-600 sm:flex-row">
+        <p>© 2024 Video Downloader. All rights reserved.</p>
+        <p>Built with Tailwind CSS v4</p>
+      </div>
     </footer>
-
-    <!-- Load JavaScript Modules -->
     <script src="{{ url_for('static', filename='tiktok.js') }}"></script>
     <script src="{{ url_for('static', filename='facebook.js') }}"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
-</body>
+  </body>
 </html>
