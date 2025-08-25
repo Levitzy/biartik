@@ -7,9 +7,11 @@
     <meta name="description" content="Download TikTok and Facebook videos with or without watermark. Fast, free, and high quality.">
     <meta name="robots" content="index, follow">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   </head>
-  <body class="min-h-screen antialiased bg-neutral-950 text-neutral-100 selection:bg-indigo-500/30 selection:text-white [background-image:radial-gradient(36rem_36rem_at_-10%_-20%,theme(colors.neutral.900/.8),transparent),radial-gradient(32rem_32rem_at_120%_-10%,theme(colors.indigo.900/.5),transparent),radial-gradient(48rem_48rem_at_60%_120%,theme(colors.neutral.900/.6),transparent)]">
+  <body class="relative min-h-screen antialiased text-neutral-100">
+    <div class="pointer-events-none fixed inset-0 -z-20 bg-neutral-950"></div>
+    <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(60rem_60rem_at_10%_-10%,rgba(99,102,241,0.08),transparent),radial-gradient(40rem_40rem_at_120%_-20%,rgba(37,99,235,0.08),transparent),radial-gradient(70rem_70rem_at_60%_120%,rgba(0,0,0,0.35),transparent)]"></div>
+
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-neutral-900 focus:px-3 focus:py-2 focus:shadow-lg">Skip to content</a>
 
     <header class="sticky top-0 z-40 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
@@ -48,7 +50,7 @@
           </div>
         </div>
 
-        <div class="mt-5 rounded-2xl border border-white/10 bg-neutral-900/70 p-4 shadow-xl backdrop-blur-sm sm:p-5">
+        <div class="mt-5 rounded-2xl border border-white/10 bg-neutral-900/80 p-4 shadow-xl backdrop-blur-sm sm:p-5">
           <form id="downloadForm" class="space-y-4" autocomplete="off">
             <div>
               <label for="urlInput" class="mb-1.5 block text-sm font-semibold">Enter TikTok or Facebook URL</label>
@@ -97,16 +99,14 @@
           </div>
         </div>
 
-        <div id="videoInfo" class="mt-5 hidden overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/70 shadow-xl backdrop-blur">
+        <div id="videoInfo" class="mt-5 hidden overflow-hidden rounded-2xl border border-white/10 bg-neutral-900/80 shadow-xl backdrop-blur">
           <div class="p-4 sm:p-5">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <div class="lg:col-span-1">
-                <div class="relative mx-auto aspect-[9/16] w-full max-w-xs overflow-hidden rounded-xl bg-neutral-900 ring-1 ring-inset ring-white/10">
-                  <video id="videoPreview" class="hidden h-full w-full object-cover [mask-image:linear-gradient(to_bottom,black,black,transparent)]" controls muted playsinline preload="metadata" poster="" aria-label="Video preview"></video>
-                  <img id="videoThumbnail" src="" alt="Video thumbnail" class="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-[1.02]">
-
-                  <div class="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-indigo-500/20"></div>
-
+                <div class="group relative mx-auto w-full max-w-xs overflow-hidden rounded-2xl bg-neutral-950 ring-1 ring-inset ring-white/10">
+                  <div class="absolute inset-0 pointer-events-none before:content-[''] before:absolute before:inset-0 before:rounded-2xl before:ring-2 before:ring-indigo-500/20"></div>
+                  <video id="videoPreview" class="hidden h-full w-full object-cover" controls muted playsinline preload="metadata" poster="" aria-label="Video preview"></video>
+                  <img id="videoThumbnail" src="" alt="Video thumbnail" class="h-full w-full object-cover">
                   <div id="playButtonOverlay" class="absolute inset-0 grid place-items-center bg-black/35 backdrop-blur-[1px] transition-colors duration-200 hover:bg-black/45 focus-visible:bg-black/45" tabindex="0" role="button" aria-label="Load video preview">
                     <div class="relative grid h-14 w-14 place-items-center rounded-full bg-white/95 shadow">
                       <span class="absolute inset-0 -z-10 rounded-full blur-md bg-indigo-500/30"></span>
@@ -115,9 +115,8 @@
                       </svg>
                     </div>
                   </div>
-
                   <div id="videoLoading" class="absolute inset-0 hidden bg-gradient-to-b from-black/60 via-black/50 to-black/60" aria-live="polite">
-                    <div class="absolute inset-0 animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5 [mask-image:radial-gradient(40%_50%_at_50%_50%,black,transparent)]"></div>
+                    <div class="absolute inset-0 animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5"></div>
                     <div class="absolute bottom-3 left-3 right-3 rounded-lg bg-black/40 px-3 py-2 text-center text-[12px] text-white ring-1 ring-white/10">Loading preview…</div>
                   </div>
                 </div>
@@ -168,7 +167,7 @@
           </div>
         </div>
 
-        <div id="downloadProgress" role="status" aria-live="polite" class="mx-auto mt-5 hidden max-w-2xl rounded-xl border border-white/10 bg-neutral-900/70 p-4 shadow-xl backdrop-blur">
+        <div id="downloadProgress" role="status" aria-live="polite" class="mx-auto mt-5 hidden max-w-2xl rounded-xl border border-white/10 bg-neutral-900/80 p-4 shadow-xl backdrop-blur">
           <div class="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
             <div class="flex-shrink-0">
               <svg class="h-8 w-8 animate-spin text-indigo-400 sm:h-9 sm:w-9" viewBox="0 0 24 24" fill="none" aria-hidden="true">
